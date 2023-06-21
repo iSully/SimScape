@@ -28,7 +28,15 @@ public class NPC extends NPCAttributes {
 
     private int id;
 
-    public int targetNpcId;
+    private int targetNpcTypeId;
+    private NPC targetNpc;
+    private int targetNpcIndex;
+
+    // 0 = Normal,
+    // 1 = Battle (one-at-a-time NPC fights),
+    // 3 = War (All NPCs attack their enemies -- piling allowed)
+    public int combatMode;
+
 
     public NPC(int id) {
         this.id = id;
@@ -45,6 +53,14 @@ public class NPC extends NPCAttributes {
 
     public NPCDef getDef() {
         return NPCDef.cached.get(id);
+    }
+
+    public int getCombatMode() {
+        return combatMode;
+    }
+
+    public void setCombatMode(int combatMode) {
+        this.combatMode = combatMode;
     }
 
     /**
@@ -102,6 +118,25 @@ public class NPC extends NPCAttributes {
      */
 
     public RespawnListener respawnListener;
+
+    /**
+     * Battle Mode Enabled
+     */
+    public NPC getTargetNpc() {
+        return targetNpc;
+    }
+
+    public void setTargetNpc(NPC targetNpc) {
+        this.targetNpc = targetNpc;
+    }
+
+    public int getTargetNpcIndex() {
+        return targetNpcIndex;
+    }
+
+    public void setTargetNpcIndex(int targetNpcIndex) {
+        this.targetNpcIndex = targetNpcIndex;
+    }
 
     /**
      * Masks
@@ -242,12 +277,12 @@ public class NPC extends NPCAttributes {
      * Poopie Poop
      */
 
-    public int getTargetNpcId() {
-        return targetNpcId;
+    public int getTargetNpcTypeId() {
+        return targetNpcTypeId;
     }
 
-    public void setTargetNpcId(int targetNpcId) {
-        this.targetNpcId = targetNpcId;
+    public void setTargetNpcTypeId(int targetNpcTypeId) {
+        this.targetNpcTypeId = targetNpcTypeId;
     }
 
     /**
@@ -308,7 +343,7 @@ public class NPC extends NPCAttributes {
     private Runnable targetRemovalAction;
 
     public NPC targetNpc(NPC target) {
-        this.targetNpcId = target.id;
+        this.targetNpcTypeId = target.id;
         this.combat.setTarget(target);
 
         return this;
@@ -441,6 +476,7 @@ public class NPC extends NPCAttributes {
             return;
         processHits();
         processEvent();
+
         if(combat != null)
             combat.follow0();
         movement.process();

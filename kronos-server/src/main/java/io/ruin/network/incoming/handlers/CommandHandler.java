@@ -54,7 +54,6 @@ import io.ruin.model.inter.dialogue.PlayerDialogue;
 import io.ruin.model.inter.dialogue.skill.SkillDialogue;
 import io.ruin.model.inter.dialogue.skill.SkillItem;
 import io.ruin.model.inter.handlers.OptionScroll;
-import io.ruin.model.inter.handlers.TabStats;
 import io.ruin.model.inter.journal.presets.PresetCustom;
 import io.ruin.model.inter.utils.Config;
 import io.ruin.model.inter.utils.Option;
@@ -2175,21 +2174,20 @@ public class CommandHandler implements Incoming {
             }
 
             /**
+             * Camera Commands
+             */
+
+            /**
              * Npc commands
              */
             case "battle": {
-                int walkRange = 0;
+                int walkRange = 1;
 
                 int npc1Id = Integer.valueOf(args[0]);
                 int numUnits1 = Integer.valueOf(args[1]);
 
                 int npc2Id = Integer.valueOf(args[2]);
                 int numUnits2 = Integer.valueOf(args[3]);
-
-                System.out.println("NPC 1 ID: " + npc1Id);
-                System.out.println("NPC 1 Count: " + numUnits1);
-                System.out.println("NPC 2 ID: " + npc2Id);
-                System.out.println("NPC 2 Count: " + numUnits2);
 
                 NPCDef npc1 = NPCDef.get(npc1Id);
                 NPCDef npc2 = NPCDef.get(npc2Id);
@@ -2205,46 +2203,31 @@ public class CommandHandler implements Incoming {
                 ArrayList<NPC> npc1s = new ArrayList<>();
                 ArrayList<NPC> npc2s = new ArrayList<>();
 
+                // Spawn the NPCs
                 for (int x = 0; x < numUnits1; x++) {
-                    NPC newNpc = new NPC(npc1Id)
-                            .spawn(
-                                    player.getPosition().getX() + x,
-                                    player.getPosition().getY() + (5),
+
+                    NPC newNPC = new NPC(npc1Id);
+                    newNPC.setTargetNpcTypeId(npc2Id);
+                    newNPC.setCombatMode(1);
+                    newNPC.getCombat().setAllowRespawn(false);
+                    newNPC.getCombat().setAllowRetaliate(true);
+                    npc1s.add(newNPC.spawn(
+                                    player.getPosition().getX() + x + 3,
+                                    player.getPosition().getY() + 4 + (x % 2 == 0 ? 3 : -3),
                                     player.getPosition().getZ(),
-                                    walkRange);
-
-                    // TODO: Combat may extent the Entity/Actor class? Investigate. -- Can shortcut two lines below
-//                            .getCombat()
-//                            .setAllowRespawn(false);
-                    npc1s.add(newNpc);
-
-                    newNpc.getCombat().setAllowRespawn(false);
+                                    walkRange));
                 }
 
                 for (int y = 0; y < numUnits2; y++) {
-                    NPC newNpc2 = new NPC(npc2Id)
-                            .spawn(player.getPosition().getX() + y,
-                                    player.getPosition().getY() - (5),
+                    npc2s.add(new NPC(npc2Id)
+                            .spawn(player.getPosition().getX() + y + 3,
+                                    player.getPosition().getY() - 4 + (y % 2 == 0 ? 3 : -3),
                                     player.getPosition().getZ(),
-                                    walkRange);
-
-                    npc2s.add(newNpc2);
-
-                    newNpc2.getCombat()
-                            .setAllowRespawn(false);
-
-                }
-
-                for (int i = 0; i < numUnits1; i++) {
-                    if (i % 2 == 0) {
-                        npc2s.get(i).getCombat().setTarget(npc1s.get(i));
-                        npc2s.get(i).targetNpcId = npc1Id;
-
-                    } else {
-                        npc1s.get(i).getCombat().setTarget(npc2s.get(i));
-                        npc1s.get(i).targetNpcId = npc2Id;
-                    }
-
+                                    walkRange));
+                    npc2s.get(y).setTargetNpcTypeId(npc1Id);
+                    npc2s.get(y).setCombatMode(1);
+                    npc2s.get(y).getCombat().setAllowRespawn(false);
+                    npc2s.get(y).getCombat().setAllowRetaliate(true);
                 }
 
                 return true;

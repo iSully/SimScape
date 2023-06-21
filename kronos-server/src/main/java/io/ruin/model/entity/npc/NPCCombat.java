@@ -39,6 +39,7 @@ import io.ruin.utility.Broadcast;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -598,35 +599,57 @@ public abstract class NPCCombat extends Combat {
 
     protected Entity findAggressionTarget() {
 
-        boolean poop = false;
+        List<Player> localPlayers = new ArrayList<>();
+        List<NPC> localNpcs = new ArrayList<>();
 
-        List<Player> localPlayers = null;
-        List<NPC> localNpcs = null;
+        // Battle Mode - No piling allowed
+        if (npc.getCombatMode() == 1) {
+            if (npc.getTargetNpcTypeId() != 0) {
+                localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
+                        .filter(n -> {
+                                    return
+                                            (n.getDef().id == npc.getTargetNpcTypeId())
+                                            &&
+                                            (n.getCombat().target == null || !n.getCombat().isAttacking(10) || !n.getCombat().isDefending(10));
+        //                                  &&
+        //                                  (!n.getCombat().isDefending(10)) // This line prevents stacking? Maybe?
+                                })
+                        .collect(Collectors.toList());
 
-        if (npc.localPlayers().isEmpty())
-            return null;
-        if (npc.hasTarget())
-            return null;
+                if (localNpcs.isEmpty()) {
+                    System.out.println("Couldn't find any valid local NPC's to attack - returning null for NPC Index: " + npc.getIndex());
+                    return null;
+                }
 
-        if (npc.targetNpcId != 0) {
-            localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
-                    .collect(Collectors.toList());
-        } else {
-            localPlayers = npc.localPlayers().stream()
-                    .filter(this::canAggro)
-                    .collect(Collectors.toList()); // i don't mind if this is done in a different way as long as it picks a RANDOM target that passes the canAggro check
-        }
+                return Random.get(localNpcs);
 
-        if (npc.targetNpcId > 0) {
-            if (localNpcs.size() > 0 && localNpcs.isEmpty()) {
+            } else {
+                // For some reason we have combat mode set to "Battle" but no targetNpcTypeId...weird. Move on, I guess.
                 return null;
             }
         }
+        // TODO: War Mode (Allow piling)
+        else if (npc.getCombatMode() == 2) {
 
-        if (localPlayers.isEmpty())
-            return null;
+        }else {
+            if (npc.localPlayers().isEmpty())
+                return null;
+            if (npc.hasTarget())
+                return null;
 
-        return Random.get(localPlayers);
+
+                localPlayers = npc.localPlayers().stream()
+                        .filter(this::canAggro)
+                        .collect(Collectors.toList()); // i don't mind if this is done in a different way as long as it picks a RANDOM target that passes the canAggro check
+
+            if (localPlayers.isEmpty())
+                return null;
+
+            return Random.get(localPlayers);
+        }
+
+        System.out.println("Returning null @ end of NPCCombat Method (findAggressionTarget())");
+        return null;
     }
 
     protected int getAggressiveLevel() {
