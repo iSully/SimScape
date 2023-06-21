@@ -299,8 +299,12 @@ public class NPC extends NPCAttributes {
     }
 
     public void setBattleTarget(NPC battleTarget) {
+        System.out.println("Battle Target ID Before: " + this.getBattleTarget().getId());
         this.battleTarget = battleTarget;
-        this.combat.setTarget(battleTarget);
+        System.out.println("Battle Target ID After: " + this.getBattleTarget().getId());
+        System.out.println("Combat Target ID Before: " + this.getCombat().npc.getId());
+        this.combat.setTarget(battleTarget.npc);
+        System.out.println("Combat Target ID After: " + this.getCombat().npc.getId());
     }
 
     public NPC targetPlayer(Player player, boolean showIcon) {
@@ -382,7 +386,7 @@ public class NPC extends NPCAttributes {
     }
 
     public boolean hasTarget() {
-        return targetPlayer != null;
+        return battleTarget != null || targetPlayer != null;
     }
 
 
@@ -444,5 +448,9 @@ public class NPC extends NPCAttributes {
     @Override
     public boolean isNpc() {
         return true;
+    }
+
+    public String toString() {
+        return "ID: " + id + "\nTarget ID: " + combat.getTarget().npc.getId() + "\nBattle Target ID: " + battleTarget.getId() + "\nLast Attacker: " + combat.lastAttacker.npc.getId();
     }
 }

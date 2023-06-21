@@ -2206,40 +2206,49 @@ public class CommandHandler implements Incoming {
                 ArrayList<NPC> npc2s = new ArrayList<>();
 
                 for (int x = 0; x < numUnits1; x++) {
-                    NPC newNpc = new NPC(npc1Id)
+//                    NPC newNpc = new NPC(npc1Id)
+//                            .spawn(
+//                                    player.getPosition().getX() + x,
+//                                    player.getPosition().getY() + (5),
+//                                    player.getPosition().getZ(),
+//                                    walkRange);
+                    npc1s.add(new NPC(npc1Id)
                             .spawn(
                                     player.getPosition().getX() + x,
                                     player.getPosition().getY() + (5),
                                     player.getPosition().getZ(),
-                                    walkRange);
-
-
-                    newNpc.getCombat().setAllowRespawn(false);
-                    npc1s.add(newNpc);
+                                    walkRange));
 
                 }
 
                 for (int y = 0; y < numUnits2; y++) {
-                    NPC newNpc2 = new NPC(npc2Id)
+//                    NPC newNpc2 = new NPC(npc2Id)
+//                            .spawn(player.getPosition().getX() + y,
+//                                    player.getPosition().getY() - (5),
+//                                    player.getPosition().getZ(),
+//                                    walkRange);
+                    npc2s.add(new NPC(npc2Id)
                             .spawn(player.getPosition().getX() + y,
                                     player.getPosition().getY() - (5),
                                     player.getPosition().getZ(),
-                                    walkRange);
-
-                    newNpc2.getCombat()
-                            .setAllowRespawn(false);
-
-                    npc2s.add(newNpc2);
-
+                                    walkRange));
                 }
 
+//                for (int i = 0; i < numUnits1; i++) {
                 for (int i = 0; i < numUnits1; i++) {
-                    if (i % 2 == 0) {
+                    if (i % 2 == 0 && i < numUnits2) {
+                        npc2s.get(i).getCombat().setAllowRespawn(false);
+                        npc2s.get(i).getCombat().setAllowRetaliate(true);
                         npc2s.get(i).getCombat().setTarget(npc1s.get(i));
                         npc2s.get(i).setBattleTarget(npc1s.get(i));
 
                     } else {
-                        npc1s.get(i).getCombat().setTarget(npc2s.get(i));
+                        npc1s.get(i).getCombat().setAllowRespawn(false);
+                        npc1s.get(i).getCombat().setAllowRetaliate(true);
+                        if (i >= numUnits2) {
+                            continue;
+                        }
+                        npc1s.get(i).getCombat().setTarget(npc2s.get(i));   // Logic is OK for now. Needs to be tweaked when we make ::pile-battle cmd
                         npc1s.get(i).setBattleTarget(npc2s.get(i));
                     }
 

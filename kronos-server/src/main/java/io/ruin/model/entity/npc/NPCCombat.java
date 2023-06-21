@@ -39,6 +39,7 @@ import io.ruin.utility.Broadcast;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -128,7 +129,6 @@ public abstract class NPCCombat extends Combat {
      * Following
      */
     public final void follow0() {
-        System.out.println("in follow0");
         checkAggression();
         if(target == null || npc.isLocked()) //why can an npc be locked but still have a target.. hmm..
             return;
@@ -590,39 +590,55 @@ public abstract class NPCCombat extends Combat {
     }
 
     public final void checkAggression() {
-        System.out.println("In checkAggression()");
         if (target == null && isAggressive()) {
             target = findAggressionTarget();
             if (target != null)
+                System.out.println("POOOOOP HEAD");
                 faceTarget();
         }
     }
 
     protected Entity findAggressionTarget() {
 
-        System.out.println("Finding Aggession Target");
+        if (npc.getDef().id == 3127) {
+            System.out.println("Finding Aggro Target for Jad -- Tile: " + npc.getPosition().getX());
+        }
 
-        List<Player> localPlayers = null;
-        List<NPC> localNpcs = null;
+        List<Player> localPlayers = new ArrayList<>();
+        List<NPC> localNpcs = new ArrayList<>();
 
-        if (npc.localPlayers().isEmpty())
+        if (npc.getBattleTarget() == null && npc.localPlayers().isEmpty()) {
             return null;
-        if (npc.hasTarget())
+        } else if (npc.hasTarget()) {
+            System.out.println("Returning Null --- NPC Has Target: \nTarget NPC Model ID: " + npc.getBattleTarget().getDef().id + "\nTarget NPC ACTUAL ID: " + npc.getBattleTarget().getId() + "\n*********************");
             return null;
+        }
 
-        if (npc.battleTarget != null) {
+        if (npc.getBattleTarget() != null) {
             localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
+                    .filter(n -> {
+                        System.out.println("******* Trying to find matching battle target type -********* " + n.getDef().id);
+                        System.out.println("Searching for NPC Model ID: " + n.getDef().id);
+                        System.out.println("Battle Target NPC Model ID: " + npc.getBattleTarget().getDef().id);
+                        System.out.println("******");
+                        if (n.getDef().id == npc.getBattleTarget().getDef().id){
+                            System.out.println("+++++++++++++Found a matching battle target type - " + n.getDef().id);
+                            return true;
+                        }
+                        return false;
+                    })
                     .collect(Collectors.toList());
         } else {
+            System.out.println("LOOKING FOR PLAYERS. WHY NOT AN NPC???");
             localPlayers = npc.localPlayers().stream()
                     .filter(this::canAggro)
                     .collect(Collectors.toList()); // i don't mind if this is done in a different way as long as it picks a RANDOM target that passes the canAggro check
         }
 
-        System.out.println("Debugging: \n");
-        System.out.println(this.npc.battleTarget);
-        System.out.println("LocalPlayers: " + localPlayers);
-        System.out.println("LocalNPCs: " + localNpcs);
+//        System.out.println("Debugging: \n");
+//        System.out.println("Target: " + this.npc.battleTarget);
+//        System.out.println("LocalPlayers: " + localPlayers);
+//        System.out.println("LocalNPCs: " + localNpcs);
 
         if (npc.battleTarget != null && localNpcs.isEmpty()) {
             return null;
@@ -630,6 +646,10 @@ public abstract class NPCCombat extends Combat {
             return null;
         }
 
+        Entity res = (npc.battleTarget != null) ? Random.get(localNpcs) : Random.get(localPlayers);
+
+        System.out.println("RETURN VAL (Full): " + res);
+        System.out.println("RETURN VAL (ID): " + res.npc.getId());
 
         return (npc.battleTarget != null) ? Random.get(localNpcs) : Random.get(localPlayers);
     }
