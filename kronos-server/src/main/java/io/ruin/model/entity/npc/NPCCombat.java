@@ -128,6 +128,7 @@ public abstract class NPCCombat extends Combat {
      * Following
      */
     public final void follow0() {
+        System.out.println("in follow0");
         checkAggression();
         if(target == null || npc.isLocked()) //why can an npc be locked but still have a target.. hmm..
             return;
@@ -589,6 +590,7 @@ public abstract class NPCCombat extends Combat {
     }
 
     public final void checkAggression() {
+        System.out.println("In checkAggression()");
         if (target == null && isAggressive()) {
             target = findAggressionTarget();
             if (target != null)
@@ -598,7 +600,7 @@ public abstract class NPCCombat extends Combat {
 
     protected Entity findAggressionTarget() {
 
-        boolean poop = false;
+        System.out.println("Finding Aggession Target");
 
         List<Player> localPlayers = null;
         List<NPC> localNpcs = null;
@@ -608,7 +610,7 @@ public abstract class NPCCombat extends Combat {
         if (npc.hasTarget())
             return null;
 
-        if (npc.targetNpcId != 0) {
+        if (npc.battleTarget != null) {
             localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
                     .collect(Collectors.toList());
         } else {
@@ -617,16 +619,19 @@ public abstract class NPCCombat extends Combat {
                     .collect(Collectors.toList()); // i don't mind if this is done in a different way as long as it picks a RANDOM target that passes the canAggro check
         }
 
-        if (npc.targetNpcId > 0) {
-            if (localNpcs.size() > 0 && localNpcs.isEmpty()) {
-                return null;
-            }
+        System.out.println("Debugging: \n");
+        System.out.println(this.npc.battleTarget);
+        System.out.println("LocalPlayers: " + localPlayers);
+        System.out.println("LocalNPCs: " + localNpcs);
+
+        if (npc.battleTarget != null && localNpcs.isEmpty()) {
+            return null;
+        } else if (localPlayers.isEmpty()) {
+            return null;
         }
 
-        if (localPlayers.isEmpty())
-            return null;
 
-        return Random.get(localPlayers);
+        return (npc.battleTarget != null) ? Random.get(localNpcs) : Random.get(localPlayers);
     }
 
     protected int getAggressiveLevel() {

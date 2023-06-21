@@ -2213,12 +2213,10 @@ public class CommandHandler implements Incoming {
                                     player.getPosition().getZ(),
                                     walkRange);
 
-                    // TODO: Combat may extent the Entity/Actor class? Investigate. -- Can shortcut two lines below
-//                            .getCombat()
-//                            .setAllowRespawn(false);
-                    npc1s.add(newNpc);
 
                     newNpc.getCombat().setAllowRespawn(false);
+                    npc1s.add(newNpc);
+
                 }
 
                 for (int y = 0; y < numUnits2; y++) {
@@ -2228,21 +2226,21 @@ public class CommandHandler implements Incoming {
                                     player.getPosition().getZ(),
                                     walkRange);
 
-                    npc2s.add(newNpc2);
-
                     newNpc2.getCombat()
                             .setAllowRespawn(false);
+
+                    npc2s.add(newNpc2);
 
                 }
 
                 for (int i = 0; i < numUnits1; i++) {
                     if (i % 2 == 0) {
                         npc2s.get(i).getCombat().setTarget(npc1s.get(i));
-                        npc2s.get(i).targetNpcId = npc1Id;
+                        npc2s.get(i).setBattleTarget(npc1s.get(i));
 
                     } else {
                         npc1s.get(i).getCombat().setTarget(npc2s.get(i));
-                        npc1s.get(i).targetNpcId = npc2Id;
+                        npc1s.get(i).setBattleTarget(npc2s.get(i));
                     }
 
                 }

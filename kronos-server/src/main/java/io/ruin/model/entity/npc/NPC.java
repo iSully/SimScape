@@ -28,7 +28,7 @@ public class NPC extends NPCAttributes {
 
     private int id;
 
-    public int targetNpcId;
+    public NPC battleTarget;
 
     public NPC(int id) {
         this.id = id;
@@ -238,19 +238,6 @@ public class NPC extends NPCAttributes {
     }
 
     /**
-     * Custom NPC Aggro Logic - Sully
-     * Poopie Poop
-     */
-
-    public int getTargetNpcId() {
-        return targetNpcId;
-    }
-
-    public void setTargetNpcId(int targetNpcId) {
-        this.targetNpcId = targetNpcId;
-    }
-
-    /**
      * Spawn
      */
 
@@ -307,11 +294,13 @@ public class NPC extends NPCAttributes {
 
     private Runnable targetRemovalAction;
 
-    public NPC targetNpc(NPC target) {
-        this.targetNpcId = target.id;
-        this.combat.setTarget(target);
+    public NPC getBattleTarget() {
+        return battleTarget;
+    }
 
-        return this;
+    public void setBattleTarget(NPC battleTarget) {
+        this.battleTarget = battleTarget;
+        this.combat.setTarget(battleTarget);
     }
 
     public NPC targetPlayer(Player player, boolean showIcon) {
