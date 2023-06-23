@@ -595,6 +595,13 @@ public abstract class NPCCombat extends Combat {
             if (target != null)
                 faceTarget();
         }
+        // TODO: Removing the isAggressive() check would make a BIG IMPACT on behavior --- TREAD LIGHTLY!!!!!!
+//        if ((npc.getTargetNpc() == null) || (target == null && isAggressive())) {
+//            target = findAggressionTarget();
+////            npc.setTargetNpc(target);
+//            if (target != null)
+//                faceTarget();
+//        }
     }
 
     protected Entity findAggressionTarget() {
@@ -602,22 +609,19 @@ public abstract class NPCCombat extends Combat {
         List<Player> localPlayers = new ArrayList<>();
         List<NPC> localNpcs = new ArrayList<>();
 
-        // Battle Mode - No piling allowed
+        // Battle Mode -- PILING STILL WORKS ON THIS
         if (npc.getCombatMode() == 1) {
             if (npc.getTargetNpcTypeId() != 0) {
                 localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
-                        .filter(n -> {
-                                    return
-                                            (n.getDef().id == npc.getTargetNpcTypeId())
-                                            &&
-                                            (n.getCombat().target == null || !n.getCombat().isAttacking(10) || !n.getCombat().isDefending(10));
-        //                                  &&
-        //                                  (!n.getCombat().isDefending(10)) // This line prevents stacking? Maybe?
-                                })
+                        .filter(n -> (n.getDef().id == npc.getTargetNpcTypeId())
+                        &&
+                        (n.getCombat().target == null
+//                                                    || !n.getCombat().isAttacking(10) || !n.getCombat().isDefending(10)
+                        ))
                         .collect(Collectors.toList());
 
                 if (localNpcs.isEmpty()) {
-                    System.out.println("Couldn't find any valid local NPC's to attack - returning null for NPC Index: " + npc.getIndex());
+//                    System.out.println("Couldn't find any valid local NPC's to attack - returning null for NPC Index: " + npc.getIndex());
                     return null;
                 }
 

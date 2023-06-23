@@ -2205,17 +2205,16 @@ public class CommandHandler implements Incoming {
 
                 // Spawn the NPCs
                 for (int x = 0; x < numUnits1; x++) {
-
-                    NPC newNPC = new NPC(npc1Id);
-                    newNPC.setTargetNpcTypeId(npc2Id);
-                    newNPC.setCombatMode(1);
-                    newNPC.getCombat().setAllowRespawn(false);
-                    newNPC.getCombat().setAllowRetaliate(true);
-                    npc1s.add(newNPC.spawn(
+                    npc1s.add(new NPC(npc1Id)
+                            .spawn(
                                     player.getPosition().getX() + x + 3,
                                     player.getPosition().getY() + 4 + (x % 2 == 0 ? 3 : -3),
                                     player.getPosition().getZ(),
                                     walkRange));
+                    npc1s.get(x).setTargetNpcTypeId(npc2Id);
+                    npc1s.get(x).setCombatMode(1);
+                    npc1s.get(x).getCombat().setAllowRespawn(false);
+//                    npc1s.get(x).getCombat().setAllowRetaliate(true);
                 }
 
                 for (int y = 0; y < numUnits2; y++) {
@@ -2227,11 +2226,12 @@ public class CommandHandler implements Incoming {
                     npc2s.get(y).setTargetNpcTypeId(npc1Id);
                     npc2s.get(y).setCombatMode(1);
                     npc2s.get(y).getCombat().setAllowRespawn(false);
-                    npc2s.get(y).getCombat().setAllowRetaliate(true);
+//                    npc2s.get(y).getCombat().setAllowRetaliate(true);
                 }
 
                 return true;
             }
+
 
             case "npc": {
                 int npcId = Integer.valueOf(args[0]);
