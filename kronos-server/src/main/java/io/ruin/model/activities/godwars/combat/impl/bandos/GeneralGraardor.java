@@ -17,9 +17,9 @@ public class GeneralGraardor extends General {
     private static final Projectile RANGED_PROJECTILE = new Projectile(1202, 70, 43, 31, 90, 5, 10, 191);
 
     public GeneralGraardor() {
-//        super(new Lieutenant(2216, 1, 1, 2),
-//                new Lieutenant(2217, 2, -4, 2),
-//                new Lieutenant(2218, -2, 4, 6));
+        super(new Lieutenant(2216, 500, 1, 2),
+                new Lieutenant(2217, 500, -4, 2),
+                new Lieutenant(2218, 500, 4, 6));
     }
 
     @Override

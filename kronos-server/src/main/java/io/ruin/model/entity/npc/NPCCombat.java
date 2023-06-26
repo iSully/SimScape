@@ -130,8 +130,9 @@ public abstract class NPCCombat extends Combat {
      */
     public final void follow0() {
         checkAggression();
-        if(target == null || npc.isLocked()) //why can an npc be locked but still have a target.. hmm..
+        if(target == null || npc.isLocked()) { //why can an npc be locked but still have a target.. hmm..
             return;
+        }
         if(!canAttack(target)) {
             reset();
             return;
@@ -151,8 +152,11 @@ public abstract class NPCCombat extends Combat {
      * Attacking
      */
     public final void attack0() {
+//        if(target == null || hasAttackDelay() || npc.isLocked() || !attack())
+//            return;
         if(target == null || hasAttackDelay() || npc.isLocked() || !attack())
             return;
+
         updateLastAttack(info.attack_ticks);
     }
 
@@ -590,18 +594,20 @@ public abstract class NPCCombat extends Combat {
     }
 
     public final void checkAggression() {
-        if (target == null && isAggressive()) {
-            target = findAggressionTarget();
-            if (target != null)
-                faceTarget();
+        if (npc.getCombatMode() == 2) {
+            if (target == null) {
+                target = findAggressionTarget();
+                if (target != null) {
+                    faceTarget();
+                }
+            }
+        } else {
+            if (target == null && isAggressive()) {
+                target = findAggressionTarget();
+                if (target != null)
+                    faceTarget();
+            }
         }
-        // TODO: Removing the isAggressive() check would make a BIG IMPACT on behavior --- TREAD LIGHTLY!!!!!!
-//        if ((npc.getTargetNpc() == null) || (target == null && isAggressive())) {
-//            target = findAggressionTarget();
-////            npc.setTargetNpc(target);
-//            if (target != null)
-//                faceTarget();
-//        }
     }
 
     protected Entity findAggressionTarget() {
@@ -632,10 +638,19 @@ public abstract class NPCCombat extends Combat {
                 return null;
             }
         }
-        // TODO: War Mode (Allow piling)
+        // TODO: Pile Mode (Allow piling)
         else if (npc.getCombatMode() == 2) {
+            localNpcs = StreamSupport.stream(npc.localNpcs().spliterator(), false)
+                    .filter(n -> (n.getDef().id == npc.getTargetNpcTypeId()))
+                    .collect(Collectors.toList());
 
-        }else {
+            if (localNpcs.isEmpty()) {
+                return null;
+            }
+
+            return Random.get(localNpcs);
+
+        } else {
             if (npc.localPlayers().isEmpty())
                 return null;
             if (npc.hasTarget())
@@ -651,9 +666,6 @@ public abstract class NPCCombat extends Combat {
 
             return Random.get(localPlayers);
         }
-
-        System.out.println("Returning null @ end of NPCCombat Method (findAggressionTarget())");
-        return null;
     }
 
     protected int getAggressiveLevel() {
@@ -683,11 +695,11 @@ public abstract class NPCCombat extends Combat {
     }
 
     public int getAggressionRange() {
-        return npc.wildernessSpawnLevel > 0 ? 2 : 4;
+        return npc.wildernessSpawnLevel > 0 ? 50 : 50;
     }
 
     public int getAttackBoundsRange() {
-        return 12;
+        return 50;      // TODO: investigate -- is this their "radar" range? Can they detect NPCs/enemies past 12 tile offset?
     }
 
     @Override
