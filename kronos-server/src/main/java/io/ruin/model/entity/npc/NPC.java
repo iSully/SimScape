@@ -457,6 +457,7 @@ public class NPC extends NPCAttributes {
     public void process() {
         if(removed)
             return;
+
         processHits();
         processEvent();
 
