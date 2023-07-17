@@ -35,20 +35,20 @@ public class JalTokJad extends NPCCombat { // Inferno jad
 
     @Override
     public void init() {
-        npc.hitListener = new HitListener().postDamage(this::postDamage);
-        npc.deathStartListener = (entity, killer, killHit) -> healers.forEach(healer -> {
-            getInferno().getMap().removeNpc(healer);
-            healer.remove();
-        });
+//        npc.hitListener = new HitListener().postDamage(this::postDamage);
+//        npc.deathStartListener = (entity, killer, killHit) -> healers.forEach(healer -> {
+//            getInferno().getMap().removeNpc(healer);
+//            healer.remove();
+//        });
     }
 
     private void postDamage(Hit hit) {
-        if (getInferno() == null || getWave() == -1)
+//        if (getInferno() == null || getWave() == -1)
             return;
-        if (!spawnedHealers && npc.getHp() < (npc.getMaxHp() / 2)) {
-            spawnHealers(getHealerCount());
-            spawnedHealers = true;
-        }
+//        if (!spawnedHealers && npc.getHp() < (npc.getMaxHp() / 2)) {
+//            spawnHealers(getHealerCount());
+//            spawnedHealers = true;
+//        }
     }
 
     private void spawnHealers(int healerCount) {
@@ -136,12 +136,15 @@ public class JalTokJad extends NPCCombat { // Inferno jad
                     MAGIC_PROJECTILES[i].send(npc, target);
                 Hit hit = new Hit(npc, AttackStyle.MAGIC)
                         .randDamage(info.max_damage)
+                        .boostAttack(0.25)          // TWEAK ME BASED ON OPPONENT
+//                        .boostDamage(0.35)
                         .clientDelay(delay);
                 hit.postDamage(t -> {
                     t.graphics(157);
                     t.privateSound(163);
                 });
                 target.hit(hit);
+                npc.forceText("I'm hitting w/ magic and doing " + hit.damage);
             });
         } else {
             /**
@@ -155,11 +158,14 @@ public class JalTokJad extends NPCCombat { // Inferno jad
                 World.sendGraphics(451, 0, 0, target.getPosition());
                 Hit hit = new Hit(npc, AttackStyle.RANGED)
                         .randDamage(info.max_damage)
+                        .boostAttack(0.25)          // TWEAK ME BASED ON OPPONENT
+//                        .boostDamage(0.35)
                         .delay(2);
                 hit.postDamage(t -> {
                     t.graphics(157);
                     t.privateSound(163);
                 });
+                npc.forceText("I'm hitting w/ range and doing " + hit.damage);
                 target.hit(hit);
             });
         }

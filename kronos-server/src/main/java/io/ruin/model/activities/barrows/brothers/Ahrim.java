@@ -27,8 +27,8 @@ public class Ahrim extends NPCCombat {
         npc.graphics(155, 92, 0);
         npc.publicSound(162, 1, 0);
         Hit hit = projectileAttack(FIRE_WAVE, 1167, AttackStyle.MAGIC, info.max_damage);
-        if(Random.rollDie(4)) {
-            target.player.getStats().get(StatType.Strength).drain(5);
+        if(Random.rollDie(5)) {
+            target.npc.getCombat().getStat(StatType.Strength).drain(5);
             target.graphics(400);
         }
         return true;

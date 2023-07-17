@@ -20,8 +20,9 @@ public class Dharok extends NPCCombat {
         if(!withinDistance(1))
             return false;
         Hit hit = basicAttack();
-        if(Random.rollDie(4))
-            hit.boostDamage((npc.getMaxHp() - npc.getHp()) * 0.01);
+        if(Random.rollDie(4)) {
+            hit.boostDamage((npc.getMaxHp() - npc.getHp()) * 0.02);
+        }
         return true;
     }
 

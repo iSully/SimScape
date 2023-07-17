@@ -5,6 +5,7 @@ import io.ruin.cache.NPCDef;
 import io.ruin.model.World;
 import io.ruin.model.activities.miscpvm.BasicCombat;
 import io.ruin.model.activities.wilderness.Wilderness;
+import io.ruin.model.entity.Entity;
 import io.ruin.model.entity.player.Player;
 import io.ruin.model.entity.shared.UpdateMask;
 import io.ruin.model.entity.shared.listeners.RespawnListener;
@@ -28,7 +29,14 @@ public class NPC extends NPCAttributes {
 
     private int id;
 
-    public NPC battleTarget;
+    private int targetNpcTypeId;
+
+    private Entity targetNpc;
+
+    // 0 = Normal,
+    // 1 = Battle (one-at-a-time NPC fights),
+    // 3 = War (All NPCs attack their enemies -- piling allowed)
+    public int combatMode;
 
     public NPC(int id) {
         this.id = id;
@@ -45,6 +53,22 @@ public class NPC extends NPCAttributes {
 
     public NPCDef getDef() {
         return NPCDef.cached.get(id);
+    }
+
+    public int getCombatMode() {
+        return combatMode;
+    }
+
+    public void setCombatMode(int combatMode) {
+        this.combatMode = combatMode;
+    }
+
+    public Entity getTargetNpc() {
+        return targetNpc;
+    }
+
+    public void setTargetNpc(Entity targetNpc) {
+        this.targetNpc = targetNpc;
     }
 
     /**
@@ -238,6 +262,19 @@ public class NPC extends NPCAttributes {
     }
 
     /**
+     * Custom NPC Aggro Logic - Sully
+     * 
+     */
+
+    public int getTargetNpcTypeId() {
+        return targetNpcTypeId;
+    }
+
+    public void setTargetNpcTypeId(int targetNpcTypeId) {
+        this.targetNpcTypeId = targetNpcTypeId;
+    }
+
+    /**
      * Spawn
      */
 
@@ -293,15 +330,6 @@ public class NPC extends NPCAttributes {
     private boolean targetIcon;
 
     private Runnable targetRemovalAction;
-
-    public NPC getBattleTarget() {
-        return battleTarget;
-    }
-
-    public void setBattleTarget(NPC battleTarget) {
-        this.battleTarget = battleTarget;
-        this.combat.setTarget(battleTarget);
-    }
 
     public NPC targetPlayer(Player player, boolean showIcon) {
         this.targetPlayer = player;
@@ -428,8 +456,10 @@ public class NPC extends NPCAttributes {
     public void process() {
         if(removed)
             return;
+
         processHits();
         processEvent();
+
         if(combat != null)
             combat.follow0();
         movement.process();

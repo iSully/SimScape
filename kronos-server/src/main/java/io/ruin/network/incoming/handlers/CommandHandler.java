@@ -54,7 +54,6 @@ import io.ruin.model.inter.dialogue.PlayerDialogue;
 import io.ruin.model.inter.dialogue.skill.SkillDialogue;
 import io.ruin.model.inter.dialogue.skill.SkillItem;
 import io.ruin.model.inter.handlers.OptionScroll;
-import io.ruin.model.inter.handlers.TabStats;
 import io.ruin.model.inter.journal.presets.PresetCustom;
 import io.ruin.model.inter.utils.Config;
 import io.ruin.model.inter.utils.Option;
@@ -2086,6 +2085,38 @@ public class CommandHandler implements Incoming {
                 return true;
             }
 
+            case "battlespot": {
+                player.getMovement().teleport(3164, 3489, 2);
+                player.getAppearance().setNpcId(3441);
+                player.setInvincible(true);
+                player.setHidden(true);
+                player.getAppearance().update();
+
+                return true;
+            }
+
+            case "hideui": {
+//                int parentId = Integer.valueOf(args[0]);
+//                int minChildId = Integer.valueOf(args[1]);
+//                int maxChildId = args.length > 2 ? Integer.valueOf(args[2]) : minChildId;
+                player.getPacketSender().setHidden(Interface.CHAT_BAR, 0, true);
+                player.getPacketSender().setHidden(Interface.WORLD_MAP, 0, true);
+                player.getPacketSender().setHidden(Interface.INVENTORY, 0, true);
+                player.getPacketSender().setHidden(Interface.EXPERIENCE_COUNTER, 0, true);
+                player.getPacketSender().setHidden(Interface.COMBAT_OPTIONS, 0, true);
+                player.getPacketSender().setHidden(Interface.DEFAULT_SCREEN, 0, true);
+//                for(int childId = 0; childId <= 13; childId++) {
+//                    player.getPacketSender().setHidden(Interface.INVENTORY, childId, true);
+//                }
+//                return true;
+//                player.getPacketSender().setHidden(171, 0, true);
+//                player.getPacketSender().setHidden(Interface., 0, true);
+//                player.getPacketSender()
+//                player.getPacketSender().setHidden(Interface, 0, true);
+//                player.getPacketSender().setHidden(Interface.CHAT_BAR, 0, true);
+                return true;
+            }
+
             case "icshow": {
                 int parentId = Integer.valueOf(args[0]);
                 int minChildId = Integer.valueOf(args[1]);
@@ -2175,21 +2206,20 @@ public class CommandHandler implements Incoming {
             }
 
             /**
+             * Camera Commands
+             */
+
+            /**
              * Npc commands
              */
             case "battle": {
-                int walkRange = 0;
+                int walkRange = 1;
 
                 int npc1Id = Integer.valueOf(args[0]);
                 int numUnits1 = Integer.valueOf(args[1]);
 
                 int npc2Id = Integer.valueOf(args[2]);
                 int numUnits2 = Integer.valueOf(args[3]);
-
-                System.out.println("NPC 1 ID: " + npc1Id);
-                System.out.println("NPC 1 Count: " + numUnits1);
-                System.out.println("NPC 2 ID: " + npc2Id);
-                System.out.println("NPC 2 Count: " + numUnits2);
 
                 NPCDef npc1 = NPCDef.get(npc1Id);
                 NPCDef npc2 = NPCDef.get(npc2Id);
@@ -2205,48 +2235,305 @@ public class CommandHandler implements Incoming {
                 ArrayList<NPC> npc1s = new ArrayList<>();
                 ArrayList<NPC> npc2s = new ArrayList<>();
 
-                for (int x = 0; x < numUnits1; x++) {
-                    NPC newNpc = new NPC(npc1Id)
-                            .spawn(
-                                    player.getPosition().getX() + x,
-                                    player.getPosition().getY() + (5),
-                                    player.getPosition().getZ(),
-                                    walkRange);
+                // Calculate the maximum number of units to determine the grid size
+                int maxUnits = Math.max(numUnits1, numUnits2);
 
+                // Limit the maximum number of units to fit within a 25 tile range in either direction
+                maxUnits = Math.min(maxUnits, 20 / 2);
 
-                    newNpc.getCombat().setAllowRespawn(false);
-                    npc1s.add(newNpc);
+                // Calculate the starting x-coordinate for the grid
+                int startX = player.getPosition().getX() - (maxUnits / 2) * 2;
 
-                }
+                // Spawn the NPCs
+                for (int i = 0; i < maxUnits; i++) {
+                    // Calculate the row and column for the current unit
+                    int row = i / 25;
+                    int col = i % 25;
 
-                for (int y = 0; y < numUnits2; y++) {
-                    NPC newNpc2 = new NPC(npc2Id)
-                            .spawn(player.getPosition().getX() + y,
-                                    player.getPosition().getY() - (5),
-                                    player.getPosition().getZ(),
-                                    walkRange);
-
-                    newNpc2.getCombat()
-                            .setAllowRespawn(false);
-
-                    npc2s.add(newNpc2);
-
-                }
-
-                for (int i = 0; i < numUnits1; i++) {
-                    if (i % 2 == 0) {
-                        npc2s.get(i).getCombat().setTarget(npc1s.get(i));
-                        npc2s.get(i).setBattleTarget(npc1s.get(i));
-
-                    } else {
-                        npc1s.get(i).getCombat().setTarget(npc2s.get(i));
-                        npc1s.get(i).setBattleTarget(npc2s.get(i));
+                    // Spawn npc1Id units above the player
+                    if (i < numUnits1) {
+                        npc1s.add(new NPC(npc1Id)
+                                .spawn(
+                                        startX + col * 2,
+                                        player.getPosition().getY() + 5 + row * 2,
+                                        player.getPosition().getZ(),
+                                        walkRange));
+                        npc1s.get(i).setTargetNpcTypeId(npc2Id);
+                        npc1s.get(i).setCombatMode(1);
+                        npc1s.get(i).getCombat().setAllowRespawn(false);
                     }
 
+                    // Spawn npc2Id units below the player
+                    if (i < numUnits2) {
+                        npc2s.add(new NPC(npc2Id)
+                                .spawn(
+                                        startX + col * 2,
+                                        player.getPosition().getY() - 5 - row * 2,
+                                        player.getPosition().getZ(),
+                                        walkRange));
+                        npc2s.get(i).setTargetNpcTypeId(npc1Id);
+                        npc2s.get(i).setCombatMode(1);
+                        npc2s.get(i).getCombat().setAllowRespawn(false);
+                    }
+                }
+
+
+                return true;
+            }
+
+            case "cameratest": {
+                player.getPacketSender().turnCameraToLocation(player.getPosition().getX(), player.getPosition().getY() + 100, player.getPosition().getZ() + 150, 0, 25);
+                return true;
+            }
+
+//            case "battle": {
+//                int walkRange = 1;
+//
+//                int npc1Id = Integer.valueOf(args[0]);
+//                int numUnits1 = Integer.valueOf(args[1]);
+//
+//                int npc2Id = Integer.valueOf(args[2]);
+//                int numUnits2 = Integer.valueOf(args[3]);
+//
+//                NPCDef npc1 = NPCDef.get(npc1Id);
+//                NPCDef npc2 = NPCDef.get(npc2Id);
+//
+//                if (npc1 == null) {
+//                    player.sendMessage("Invalid NPC ID: " + npc1Id);
+//                    return true;
+//                }
+//                if (npc2 == null) {
+//                    player.sendMessage("Invalid NPC ID: " + npc2Id);
+//                }
+//
+//                ArrayList<NPC> npc1s = new ArrayList<>();
+//                ArrayList<NPC> npc2s = new ArrayList<>();
+//
+//                // Calculate the maximum number of units to determine the grid size
+//                int maxUnits = Math.max(numUnits1, numUnits2);
+//
+//                // Calculate the starting x-coordinate for the grid
+//                int startX = player.getPosition().getX() - (maxUnits / 2) * 2; // TODO: CHANGE Multiplier  ----> ? based on NPC size
+//
+//                // Spawn the NPCs
+//                for (int i = 0; i < maxUnits; i++) {
+//                    // Spawn npc1Id units above the player
+//                    if (i < numUnits1) {
+//                        npc1s.add(new NPC(npc1Id)
+//                                .spawn(
+//                                        startX + i * 2,                // TODO: CHANGE # ----> ? based on NPC size
+//                                        player.getPosition().getY() + 5,
+//                                        player.getPosition().getZ(),
+//                                        walkRange));
+//                        npc1s.get(i).setTargetNpcTypeId(npc2Id);
+//                        npc1s.get(i).setCombatMode(1);
+//                        npc1s.get(i).getCombat().setAllowRespawn(false);
+//                    }
+//
+//                    // Spawn npc2Id units below the player
+//                    if (i < numUnits2) {
+//                        npc2s.add(new NPC(npc2Id)
+//                                .spawn(
+//                                        startX + i * 2,                 // CHANGE # ----> ? based on NPC size
+//                                        player.getPosition().getY() - 5,
+//                                        player.getPosition().getZ(),
+//                                        walkRange));
+//                        npc2s.get(i).setTargetNpcTypeId(npc1Id);
+//                        npc2s.get(i).setCombatMode(1);
+//                        npc2s.get(i).getCombat().setAllowRespawn(false);
+//                    }
+//                }
+//                return true;
+//            }
+
+            case "pile": {
+                int walkRange = 30;
+
+                int npc1Id = Integer.valueOf(args[0]);
+                int numUnits1 = Integer.valueOf(args[1]);
+
+                int npc2Id = Integer.valueOf(args[2]);
+                int numUnits2 = Integer.valueOf(args[3]);
+
+                NPCDef npc1 = NPCDef.get(npc1Id);
+                NPCDef npc2 = NPCDef.get(npc2Id);
+
+                if (npc1 == null) {
+                    player.sendMessage("Invalid NPC ID: " + npc1Id);
+                    return true;
+                }
+                if (npc2 == null) {
+                    player.sendMessage("Invalid NPC ID: " + npc2Id);
+                }
+
+                ArrayList<NPC> npc1s = new ArrayList<>();
+                ArrayList<NPC> npc2s = new ArrayList<>();
+
+                // Spawn a single npc2Id unit at the player's position
+                if (numUnits2 > 0) {
+                    npc2s.add(new NPC(npc2Id)
+                            .spawn(
+                                    player.getPosition().getX() - 2,
+                                    player.getPosition().getY() - 2,
+                                    player.getPosition().getZ(),
+                                    walkRange));
+                    npc2s.get(0).setTargetNpcTypeId(npc1Id);
+                    npc2s.get(0).setCombatMode(2);
+                    npc2s.get(0).getCombat().setAllowRespawn(false);
+                    npc2s.get(0).getCombat().setAllowRetaliate(true);
+                }
+
+                // Define the starting and ending points for the square
+                int startX = player.getPosition().getX() - 10;
+                int startY = player.getPosition().getY() - 11;
+                int endX = player.getPosition().getX() + 10;
+                int endY = player.getPosition().getY() + 11;
+
+                int spawnCount = 0;
+                List<Position> stackedPositions = new ArrayList<>(); // To keep track of where we have NPCs stacked
+
+                // Start layer from 1 step beyond npc2s area
+                for (int layer = 3; layer <= 10; layer++) {
+                    if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+
+                    // Define the coordinates of the current layer
+                    int layerStartX = player.getPosition().getX() - layer;
+                    int layerEndX = player.getPosition().getX() + layer;
+                    int layerStartY = player.getPosition().getY() - layer;
+                    int layerEndY = player.getPosition().getY() + layer;
+
+                    // Loop through the current layer
+                    for (int x = layerStartX; x <= layerEndX; x++) {
+                        for (int y = layerStartY; y <= layerEndY; y++) {
+                            if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+
+                            // Only spawn NPCs on the edges of the current layer, skipping the corners
+                            if (x > layerStartX && x < layerEndX && y > layerStartY && y < layerEndY) continue;
+                            if ((x == layerStartX || x == layerEndX) && (y == layerStartY || y == layerEndY)) continue;
+
+                            // Check the coordinates against the boundaries of the octagonal area
+                            if (withinOctagon(x, y, player.getPosition().getX(), player.getPosition().getY())) {
+                                Position pos = new Position(x, y, player.getPosition().getZ());
+                                if (!stackedPositions.contains(pos)) {
+                                    npc1s.add(new NPC(npc1Id).spawn(x, y, player.getPosition().getZ(), walkRange));
+                                    npc1s.get(spawnCount).setTargetNpcTypeId(npc2Id);
+                                    npc1s.get(spawnCount).setCombatMode(2);
+                                    npc1s.get(spawnCount).getCombat().setAllowRespawn(false);
+                                    npc1s.get(spawnCount).forceText("FOR THE KING!!!");
+
+                                    spawnCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Spawn remaining NPCs on the same tile if we've exhausted all the tiles
+                if (spawnCount < numUnits1) {
+                    for (Position pos : stackedPositions) {
+                        if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+
+                        for (int i = 0; i < 5; i++) { // Limit of 5 NPCs per tile
+                            if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+
+                            npc1s.add(new NPC(npc1Id).spawn(pos.getX(), pos.getY(), pos.getZ(), walkRange));
+                            npc1s.get(spawnCount).setTargetNpcTypeId(npc2Id);
+                            npc1s.get(spawnCount).setCombatMode(2);
+                            npc1s.get(spawnCount).getCombat().setAllowRespawn(false);
+
+                            spawnCount++;
+                        }
+                    }
                 }
 
                 return true;
             }
+
+
+//            case "pile": {
+//                int walkRange = 30;
+//
+//                int npc1Id = Integer.valueOf(args[0]);
+//                int numUnits1 = Integer.valueOf(args[1]);
+//
+//                int npc2Id = Integer.valueOf(args[2]);
+//                int numUnits2 = Integer.valueOf(args[3]);
+//
+//                NPCDef npc1 = NPCDef.get(npc1Id);
+//                NPCDef npc2 = NPCDef.get(npc2Id);
+//
+//                if (npc1 == null) {
+//                    player.sendMessage("Invalid NPC ID: " + npc1Id);
+//                    return true;
+//                }
+//                if (npc2 == null) {
+//                    player.sendMessage("Invalid NPC ID: " + npc2Id);
+//                }
+//
+//                ArrayList<NPC> npc1s = new ArrayList<>();
+//                ArrayList<NPC> npc2s = new ArrayList<>();
+//
+//                // Spawn a single npc2Id unit at the player's position
+//                if (numUnits2 > 0) {
+//                    npc2s.add(new NPC(npc2Id)
+//                            .spawn(
+//                                    player.getPosition().getX() - 2,
+//                                    player.getPosition().getY() - 2,
+//                                    player.getPosition().getZ(),
+//                                    walkRange));
+//                    npc2s.get(0).setTargetNpcTypeId(npc1Id);
+//                    npc2s.get(0).setCombatMode(2);
+//                    npc2s.get(0).getCombat().setAllowRespawn(false);
+//                }
+//
+//                // Define the starting and ending points for the square
+//                int startX = player.getPosition().getX() - 10;
+//                int startY = player.getPosition().getY() - 11;
+//                int endX = player.getPosition().getX() + 10;
+//                int endY = player.getPosition().getY() + 11;
+//
+//                int spawnCount = 0;
+//
+//                // Start layer from 1 step beyond npc2s area
+//                for (int layer = 3; layer <= 10; layer++) {
+//                    if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+//
+//                    // Define the coordinates of the current layer
+//                    int layerStartX = player.getPosition().getX() - layer;
+//                    int layerEndX = player.getPosition().getX() + layer;
+//                    int layerStartY = player.getPosition().getY() - layer;
+//                    int layerEndY = player.getPosition().getY() + layer;
+//
+//                    // Loop through the current layer
+//                    for (int x = layerStartX; x <= layerEndX; x++) {
+//                        for (int y = layerStartY; y <= layerEndY; y++) {
+//                            if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+//
+//                            // Only spawn NPCs on the edges of the current layer, skipping the corners
+//                            if (x > layerStartX && x < layerEndX && y > layerStartY && y < layerEndY) continue;
+//                            if ((x == layerStartX || x == layerEndX) && (y == layerStartY || y == layerEndY)) continue;
+//
+//                            // Check the coordinates against the boundaries of the octagonal area
+//                            if (withinOctagon(x, y, player.getPosition().getX(), player.getPosition().getY())) {
+//                                for (int i = 0; i < 5; i++) { // Limit of 5 NPCs per tile
+//                                    if (spawnCount >= numUnits1) break; // Stop if we've spawned enough NPCs
+//
+//                                    npc1s.add(new NPC(npc1Id)
+//                                            .spawn(x, y, player.getPosition().getZ(), walkRange));
+//                                    npc1s.get(spawnCount).setTargetNpcTypeId(npc2Id);
+//                                    npc1s.get(spawnCount).setCombatMode(2);
+//                                    npc1s.get(spawnCount).getCombat().setAllowRespawn(false);
+//
+//                                    spawnCount++;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                return true;
+//            }
+
 
             case "npc": {
                 int npcId = Integer.valueOf(args[0]);
@@ -3256,10 +3543,6 @@ public class CommandHandler implements Incoming {
                 player.sendMessage("There are "+ Impling.getACTIVE_OVERWORLD_IMPLINGS() + " imps in the overworld");
                 return true;
             }
-
-            /**
-             * Camera
-             */
             case "resetcamera": {
                 player.getPacketSender().resetCamera();
                 return true;
@@ -3473,4 +3756,32 @@ public class CommandHandler implements Incoming {
         }
         player.getPacketSender().sendClientScript(scriptId, sb.toString(), ids);
     }
+
+    static boolean withinOctagon(int x, int y, int playerX, int playerY) {
+        // Vertical and horizontal vertices distance from center
+        int vDist = 10;
+        int hDist = 11;
+
+        // Diagonal vertices distance from center
+        int dDist = 7;
+
+        // Conditions for the rectangle
+        boolean inRectangle = Math.abs(x - playerX) <= vDist && Math.abs(y - playerY) <= hDist;
+
+        // Conditions for the upper left triangle
+        boolean inUpperLeftTriangle = (x <= playerX - vDist && y >= playerY - hDist && y <= playerY + dDist - (x - (playerX - vDist)));
+
+        // Conditions for the upper right triangle
+        boolean inUpperRightTriangle = (x >= playerX + vDist && y >= playerY - hDist && y <= playerY + dDist + (x - (playerX + vDist)));
+
+        // Conditions for the lower left triangle
+        boolean inLowerLeftTriangle = (x <= playerX - vDist && y <= playerY + hDist && y >= playerY - dDist - (x - (playerX - vDist)));
+
+        // Conditions for the lower right triangle
+        boolean inLowerRightTriangle = (x >= playerX + vDist && y <= playerY + hDist && y >= playerY - dDist + (x - (playerX + vDist)));
+
+        return inRectangle || inUpperLeftTriangle || inUpperRightTriangle || inLowerLeftTriangle || inLowerRightTriangle;
+    }
+
+
 }

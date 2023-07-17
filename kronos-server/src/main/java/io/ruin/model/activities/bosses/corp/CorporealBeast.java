@@ -61,6 +61,8 @@ public class CorporealBeast extends NPCCombat {
 
     private void sendCore() {
         core = new NPC(320).spawn(npc.getAbsX() + 1, npc.getAbsY() + 1, npc.getHeight());
+        core.setTargetNpcTypeId(npc.getTargetNpcTypeId());
+        core.setCombatMode(npc.getCombatMode());
         core.deathEndListener = (entity, killer, killHit) -> entity.npc.remove();
         core.addEvent(event -> {
             while (!core.isRemoved()) {
@@ -73,19 +75,38 @@ public class CorporealBeast extends NPCCombat {
     }
 
     private boolean coreDrain() {
+        // TODO: This method
+        int damage = 0;
+
         if (core == null || core.isRemoved() || core.getCombat().isDead())
             return false;
-        int damage = 0;
-        for (Player player : npc.localPlayers()) {
-            if (canAttack(player) && Misc.getDistance(player.getPosition(), core.getPosition()) <= 1 && ProjectileRoute.allow(npc, core)) {
-                if (core.isPoisoned())
-                    return true;
-                damage += player.hit(new Hit().randDamage(12).ignorePrayer().ignoreDefence());
-                player.sendMessage("The dark energy core drains life from you and transfers it to its master!");
+
+        if (npc.getCombatMode() == 2) {
+            for (NPC enemy : npc.localNpcs()) {
+//            if (canAttack(player) && Misc.getDistance(player.getPosition(), core.getPosition()) <= 1 && ProjectileRoute.allow(npc, core)) {
+                if (canAttack(enemy) && Misc.getDistance(enemy.getPosition(), core.getPosition()) <= 1 && ProjectileRoute.allow(npc, core)) {
+                    if (core.isPoisoned())
+                        return true;
+//                damage += player.hit(new Hit().randDamage(12).ignorePrayer().ignoreDefence());
+                    damage += enemy.hit(new Hit().randDamage(12).ignorePrayer().ignoreDefence());
+                }
             }
+            npc.incrementHp(damage);
+            return damage > 0;
+        } else {
+            for (Player player : npc.localPlayers()) {
+//            if (canAttack(player) && Misc.getDistance(player.getPosition(), core.getPosition()) <= 1 && ProjectileRoute.allow(npc, core)) {
+                if (canAttack(player) && Misc.getDistance(player.getPosition(), core.getPosition()) <= 1 && ProjectileRoute.allow(npc, core)) {
+                    if (core.isPoisoned())
+                        return true;
+//                damage += player.hit(new Hit().randDamage(12).ignorePrayer().ignoreDefence());
+                    damage += player.hit(new Hit().randDamage(12).ignorePrayer().ignoreDefence());
+                    player.sendMessage("The dark energy core drains life from you and transfers it to its master!");
+                }
+            }
+            npc.incrementHp(damage);
+            return damage > 0;
         }
-        npc.incrementHp(damage);
-        return damage > 0;
     }
 
     private void moveCore(Event event) throws Pausable {

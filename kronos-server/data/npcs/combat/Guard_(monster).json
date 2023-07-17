@@ -6,7 +6,7 @@
     "hitpoints": 22,
     "aggressive_level": 0,
     "max_damage": 4,
-    "attack_style": "CRUSH",
+    "attack_style": "RANGED",
     //Slayer Info
     "slayer_level": 1,
     "slayer_xp": 0.0,

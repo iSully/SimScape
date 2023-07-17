@@ -19,6 +19,6 @@ object GlobalMessages {
     }
 
     private fun announceVote() {
-        Broadcast.WORLD.sendNews(Icon.ANNOUNCEMENT, "You can now ::Vote for 1M GP 1hour Double XP and a Vote Mystery Box!")
+//        Broadcast.WORLD.sendNews(Icon.ANNOUNCEMENT, "You can now ::Vote for 1M GP 1hour Double XP and a Vote Mystery Box!")
     }
 }
