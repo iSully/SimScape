@@ -6,6 +6,7 @@ import io.ruin.model.combat.AttackStyle;
 import io.ruin.model.combat.Hit;
 import io.ruin.model.entity.npc.NPCCombat;
 import io.ruin.model.map.Projectile;
+import io.ruin.model.stat.StatType;
 
 //todo SOUNDS
 public class TzTokJad extends NPCCombat {
@@ -55,11 +56,14 @@ public class TzTokJad extends NPCCombat {
                     MAGIC_PROJECTILES[i].send(npc, target);
                 Hit hit = new Hit(npc, AttackStyle.MAGIC)
                         .randDamage(info.max_damage)
+                        .boostAttack(0.25)          // TWEAK ME BASED ON OPPONENT
+                        .boostDamage(0.15)
                         .clientDelay(delay);
                 hit.postDamage(t -> {
                     t.graphics(157);
                     t.privateSound(163);
                 });
+                npc.forceText("I'm hitting w/ magic and doing " + hit.damage);
                 target.hit(hit);
             });
         } else {
@@ -74,11 +78,14 @@ public class TzTokJad extends NPCCombat {
                 World.sendGraphics(451, 0, 0, target.getPosition());
                 Hit hit = new Hit(npc, AttackStyle.RANGED)
                         .randDamage(info.max_damage)
+                        .boostAttack(0.25)          // TWEAK ME BASED ON OPPONENT
+                        .boostDamage(0.1)
                         .delay(2);
                 hit.postDamage(t -> {
                     t.graphics(157);
                     t.privateSound(163);
                 });
+                npc.forceText("I'm hitting w/ range and doing " + hit.damage);
                 target.hit(hit);
             });
         }
