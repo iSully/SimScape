@@ -38,7 +38,6 @@ public class NPC extends NPCAttributes {
     // 3 = War (All NPCs attack their enemies -- piling allowed)
     public int combatMode;
 
-
     public NPC(int id) {
         this.id = id;
         setSize(getDef().size);
@@ -264,7 +263,7 @@ public class NPC extends NPCAttributes {
 
     /**
      * Custom NPC Aggro Logic - Sully
-     * Poopie Poop
+     * 
      */
 
     public int getTargetNpcTypeId() {
